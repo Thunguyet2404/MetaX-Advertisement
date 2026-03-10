@@ -1,0 +1,11 @@
+{
+    "name": "metax-ads-checker",
+    "version": "1.3.0",
+    "description": "MetaX - Ads Checker",
+    "main": "background.js",
+    "bin": {
+        "metax": "cli.js"
+    },
+    "author": "Hiếu Trung Nguyễn <t.me/hieunguyen2907>",
+    "license": "MIT"
+}

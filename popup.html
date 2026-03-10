@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaX - Ads Checker</title>
+    <link rel="stylesheet" href="popup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Login -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <div class="login-logo">
+                <span class="logo-text fancy-logo">Meta<span class="logo-highlight">X</span></span>
+                <p class="login-subtitle">Ads Account Checker</p>
+            </div>
+            <div class="login-form">
+                <label for="tokenInput">Access Token</label>
+                <div class="token-input-wrapper">
+                    <i class="fas fa-key"></i>
+                    <input type="password" id="tokenInput" placeholder="Paste your access token here..." />
+                    <button id="toggleTokenBtn" class="toggle-token-btn"><i class="fas fa-eye"></i></button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="loginBtn" class="login-btn" style="flex: 1;"><i class="fas fa-sign-in-alt"></i> <span
+                            data-i18n="connect">Kết nối</span></button>
+                    <button id="getTokenBtn" class="login-btn" style="flex: 1; background: #10b981;"><i
+                            class="fas fa-magic"></i> Lấy Token</button>
+                </div>
+                <p class="login-note"><i class="fas fa-info-circle"></i> Lấy token tự động (Cần login FB) hoặc nhập thủ
+                    công</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div id="mainApp" class="main-app hidden">
+        <header class="header">
+            <div class="header-left">
+                <div class="dropdown">
+                    <button id="menuBtn" class="menu-btn"><i class="fas fa-bars"></i></button>
+                    <div class="dropdown-content hidden" id="dropdownMenu">
+                        <a href="https://business.facebook.com/settings/" target="_blank" class="dropdown-item"><i
+                                class="fas fa-briefcase"></i> Về trình quản lý</a>
+                    </div>
+                </div>
+                <span class="logo-text fancy-logo">Meta<span class="logo-highlight">X</span></span>
+            </div>
+            <div class="header-right">
+                <div class="user-info"><i class="fas fa-user-circle"></i> <span id="userName">User</span></div>
+                <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </header>
+
+        <div class="tab-bar">
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="ad">AD</button>
+                <button class="tab-btn" data-tab="bm">BM</button>
+                <button class="tab-btn" data-tab="page">PAGE</button>
+                <button class="tab-btn" data-tab="camp">CAMP</button>
+            </div>
+            <div class="tab-actions">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search..." />
+                    <button id="clearSearchBtn" class="clear-search-btn hidden"><i class="fas fa-times"></i></button>
+                </div>
+                <button id="loadBtn" class="action-btn" title="Load/Reload"><i class="fas fa-sync-alt"></i></button>
+                <button id="usdBtn" class="action-btn usd-btn" title="Convert to USD"><i
+                        class="fas fa-dollar-sign"></i></button>
+                <button id="checkLimitBtn" class="action-btn" title="Check Limit"><i
+                        class="fas fa-chart-line"></i></button>
+                <button id="mixBtn" class="action-btn mix-btn">MIX</button>
+                <button id="exportBtn" class="action-btn" title="Export CSV"><i class="fas fa-download"></i></button>
+                <button id="langBtn" class="action-btn lang-btn"></button>
+            </div>
+        </div>
+
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p id="loadingText">Loading...</p>
+            </div>
+        </div>
+
+        <!-- AD Tab -->
+        <div class="tab-content active" id="tab-ad">
+            <div class="table-container">
+                <table class="data-table" id="adTable">
+                    <thead>
+                        <tr>
+                            <th class="col-stt">Stt</th>
+                            <th class="sortable" data-sort="status">Status <i class="fas fa-sort"></i></th>
+                            <th>Hành Động</th>
+                            <th class="sortable" data-sort="id">ID <i class="fas fa-sort"></i></th>
+                            <th>Owner</th>
+                            <th class="sortable" data-sort="name">Name <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="balance">Balance <i class="fas fa-sort"></i></th>
+                            <th>Ngưỡng</th>
+                            <th class="sortable" data-sort="limit">Giới Hạn <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="spend">Chi Tiêu <i class="fas fa-sort"></i></th>
+                            <th>QTV</th>
+                            <th id="currencyHeader">Tiền Tệ</th>
+                            <th>Loại TK</th>
+                            <th>Quyền</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adTableBody">
+                        <tr>
+                            <td colspan="14">
+                                <div class="empty-state"><i class="fas fa-ad"></i>Loading...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination" id="adPagination">
+                <div class="pagination-info"><span id="adTotalCount">Total: 0</span></div>
+                <div class="pagination-controls" id="adPaginationControls"></div>
+                <div class="page-size-selector">
+                    <select id="pageSize">
+                        <option value="25">25 / page</option>
+                        <option value="50" selected>50 / page</option>
+                        <option value="100">100 / page</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- BM Tab -->
+        <div class="tab-content" id="tab-bm">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-stt">Stt</th>
+                            <th>Status</th>
+                            <th>BM ID</th>
+                            <th>Tên BM</th>
+                            <th>Số TK QC</th>
+                            <th>Số Page</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bmTableBody">
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">Loading...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination" id="bmPagination">
+                <div class="pagination-info"><span id="bmTotalCount">Total: 0</span></div>
+                <div class="pagination-controls" id="bmPaginationControls"></div>
+            </div>
+        </div>
+
+        <!-- PAGE Tab -->
+        <div class="tab-content" id="tab-page">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-stt">Stt</th>
+                            <th>Page ID</th>
+                            <th>Logo</th>
+                            <th>Tên Page</th>
+                            <th>Danh Mục</th>
+                            <th>Followers</th>
+                            <th>Likes</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pageTableBody">
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">Loading...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination" id="pagePagination">
+                <div class="pagination-info"><span id="pageTotalCount">Total: 0</span></div>
+                <div class="pagination-controls" id="pagePaginationControls"></div>
+            </div>
+        </div>
+
+        <!-- CAMP Tab -->
+        <div class="tab-content" id="tab-camp">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-stt">Stt</th>
+                            <th>Status</th>
+                            <th>Account</th>
+                            <th>Campaign ID</th>
+                            <th>Tên Campaign</th>
+                            <th>Objective</th>
+                            <th>Budget</th>
+                            <th>Spend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="campTableBody">
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">Loading campaigns...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination" id="campPagination">
+                <div class="pagination-info"><span id="campTotalCount">Total: 0</span></div>
+                <div class="pagination-controls" id="campPaginationControls"></div>
+            </div>
+        </div>
+
+
+        <footer class="footer">
+            <span class="support-badge"><i class="fas fa-headset"></i> Support</span>
+            <span>MetaX v1.2 | Author: t.me/hieunguyen2907</span>
+        </footer>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
